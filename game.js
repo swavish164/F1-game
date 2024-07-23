@@ -26,7 +26,7 @@ var backgroundY = 0;
 let carSpeed = 1;
 let cars = [];
 const maxSpeed = 50;
-let track = [[1,"straight",0,0,1423,0],[2,"corner",1423,0,1660,250,20],[3,"straight",1690,280,1785,995],[4,"corner",30],[5,"straight"],[6,"corner",20],[7,"straight"],[8,"corner",30]]
+let track = [[1,"straight",0,0,1423,0],[2,"corner",1423,0,1660,250,20],[3,"straight",1690,280,1660,1030],[4,"corner",1660,1030,2000,1000,30],[5,"straight",2000,1000,-2040,1240],[6,"corner",-2040,1240,-2250,1000,20],[7,"straight",-2250,1000,-2243,210],[8,"corner",-2243,210,-2040,0,30]]
 var pit = false;
 var overtake = false;
 var rotation = 90 * (Math.PI /180);
@@ -37,7 +37,6 @@ var key_left = false;
 var key_right = false;
 var brake = false;
 var accelerate = false;
-console.log("End X "+ endX);
 class car {
     constructor(image,position,speed,x,y,rotation,part) {
         this.car = new Image();
@@ -132,6 +131,9 @@ function draw() {
     ctx.drawImage(carImage, CANVAS_WIDTH/2-25, CANVAS_HEIGHT/2-50, 75, 100);
 
 }
+function pitting(){
+    
+}
 function turning(part,temp){
     if(track[part][1] == "corner"){
         xStart = track[part][2];
@@ -153,36 +155,49 @@ function turning(part,temp){
                 rotation2 = 360;
                 charX = track[part][4]-2300;
                 charY = track[part][5]-1650;
-                part += 1;
+                if(pit != true){
+                    if(part + 1 < track.length){
+                        part = 0
+                    }else{
+                    part += 1;
+                    }
+                }else{
+                    pitting()
+                }
             }
     }else if(rotation2 > 90 && rotation2 <= 180){
-            charX += Math.cos(rotation2) * howMany;
-            charY -= Math.sin(rotation2) * howMany;
+            charX += Math.abs(Math.cos(rotation2) * howMany);
+            charY -= Math.abs(Math.sin(rotation2) * howMany);
             rotation2 -= steps;
             console.log(rotation2)
             if(rotation2 <= 90){
                 rotation2 = 90;
+                charX = track[part][4]-2300;
+                charY = track[part][5]-1650;
                 part += 1;
             }
     }else if(rotation2 > 180 && rotation2 <= 270){
-            charX -= Math.cos(rotation2) * howMany;
-            charY -= Math.sin(rotation2) * howMany;
+            charX -= Math.abs(Math.cos(rotation2) * howMany);
+            charY -= Math.abs(Math.sin(rotation2) * howMany);
             rotation2 -= steps;
             if(rotation2 <= 180){
                 rotation2 = 180;
+                charX = track[part][4]-2300;
+                charY = track[part][5]-1650;
                 part += 1;
             }
     }else if(rotation2 > 270 && rotation2 <= 360){
-            charX -= Math.cos(rotation2) * howMany;
-            charY += Math.sin(rotation2) * howMany;
+            charX -= Math.abs(Math.cos(rotation2) * howMany);
+            charY += Math.abs(Math.sin(rotation2) * howMany);
             rotation2 -= steps;
             if(rotation2 <= 270){
                 part += 1;
+                charX = track[part][4]-2300;
+                charY = track[part][5]-1650;
                 rotation2 = 270;
             }
         }
     }
-    console.log("returning")
     return { rotation: rotation2 * (Math.PI / 180), charX: charX, charY: charY, temp: temp, part: part }; 
 }
 function running(){
@@ -190,23 +205,23 @@ function running(){
         corner();
         draw();
         player();
-        console.log("Before: "+rotation/(Math.PI/180))
         let result = turning(currentPart,temp); // Store the returned object
         rotation = result.rotation;
         charX = result.charX;
         charY = result.charY;
         temp = result.temp;
         currentPart = result.part;
-        console.log("Char X: "+charX+" Char Y: "+charY);
     }else if(track[currentPart][1] === "straight"){
-        if(endX >= backgroundX && endX <= backgroundX +10 && endY >= backgroundY && endY <= backgroundY+10){
-        console.log("Why")
+        endX = track[currentPart][4]
+        endY = track[currentPart][5]
+        if(endX >= charX+2300 && endX <= charX +2310 && endY >= charY+1650 && endY <= charY+1660){
         currentPart++;
         temp = 0;
     }
     draw();
     player();
     var tempRotation = rotation - (90*Math.PI/180);
+        console.log("tempRoation: "+(tempRotation/(Math.PI / 180)));
     if(rotation - (90*Math.PI/180) < 0){
         tempRotation = (360*Math.PI/180) + rotation - (90*Math.PI/180);
     }
@@ -216,11 +231,11 @@ function running(){
         charX += Math.abs(Math.cos(tempRotation) * carSpeed);
     }
     if(tempRotation >0 && tempRotation <= (90*Math.PI /180)){
-        charY += Math.abs(Math.sin(tempRotation) * carSpeed);
-        charX += Math.abs(Math.cos(tempRotation) * carSpeed);
+        charY -= Math.abs(Math.sin(tempRotation) * carSpeed);
+        charX -= Math.abs(Math.cos(tempRotation) * carSpeed);
     }else if(tempRotation > (90*Math.PI /180) && tempRotation <= (180*Math.PI /180)){
         charY += Math.abs(Math.sin(tempRotation) * carSpeed);
-        charX += Math.abs(Math.cos(tempRotation) * carSpeed);
+        charX -= Math.abs(Math.cos(tempRotation) * carSpeed);
     }else if(tempRotation > (180*Math.PI /180) && tempRotation <= (270*Math.PI /180)){
         charY += Math.abs(Math.sin(tempRotation) * carSpeed);
         charX += Math.abs(Math.cos(tempRotation) * carSpeed);
@@ -252,7 +267,7 @@ function player(){
             rotation +=1 * (Math.PI /180);
         }
         }
-    if(brake) {if(carSpeed >0){carSpeed -= 0.5;}else{carSpeed = 0;}}
+    if(brake) {if(carSpeed >0){carSpeed -= 0.5;}else{carSpeed = 0;} console.log("CharX: " + charX + " CharY: " + charY)}
     if(accelerate) {carSpeed += 0.5;}    
 }
 
