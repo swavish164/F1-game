@@ -16,17 +16,19 @@ export default class car {
     }
 
     move() {
-        if (this.position == "straight") {
+        if (track[this.position][1] == "straight") {
+            this.speed = 1;
             if (this.rotation == 0) {
                 this.x += this.speed;
-            } else if (rotation == 90) {
+            } else if (this.rotation == (90*(Math.PI / 180))) {
                 this.y += this.speed;
-            } else if (rotation == 180) {
-                this.x -= this.speed;
-            } else if (rotation == 270) {
+            } else if (this.rotation == (180*(Math.PI / 180))) {
+                this.x-= this.speed;
+            } else if (this.rotation == (270*(Math.PI / 180))) {
                 this.y -= this.speed;
             }
-        } else if (this.position == "corner") {
+        } else if (track[this.position][1] == "corner") {
+            this.speed = 0.5;
             xStart = track[this.part][2];
             yStart = track[this.part][3];
             xEnd = track[this.part][4];
@@ -86,44 +88,43 @@ export default class car {
                 }
             }
         }
+            /*
         else if (track[this.part][1] === "straight") {
+            this.speed = 1;
             xEnd = track[this.part][4]
             yEnd = track[this.part][5]
             if (xEnd >= this.x + 2300 && xEnd <= this.x + 2310 && yEnd >= this.y + 1650 && yEnd <= this.y + 1660) {
                 this.part++;
             }
-            var tempRotation = this.rotation - (90 * Math.PI / 180);
-            if (this.rotation - (90 * Math.PI / 180) < 0) {
-                tempRotation = (360 * Math.PI / 180) + this.rotation - (90 * Math.PI / 180);
+            console.log(this.rotation)
+            if (this.rotation < 0) {
+                this.rotation = (360 * Math.PI / 180);
             }
-            if (tempRotation == 0) {
-                this.y += Math.abs(Math.sin(tempRotation) * this.speed);
-                this.x += Math.abs(Math.cos(tempRotation) * this.speed);
+            if (this.rotation == 0) {
+                this.y += this.speed;
             }
-            if (tempRotation > 0 && tempRotation <= (90 * Math.PI / 180)) {
-                this.y -= Math.abs(Math.sin(tempRotation) * this.speed);
-                this.x -= Math.abs(Math.cos(tempRotation) * this.speed);
-            } else if (tempRotation > (90 * Math.PI / 180) && tempRotation <= (180 * Math.PI / 180)) {
-                this.y += Math.abs(Math.sin(tempRotation) * this.speed);
-                this.x -= Math.abs(Math.cos(tempRotation) * this.speed);
-            } else if (tempRotation > (180 * Math.PI / 180) && tempRotation <= (270 * Math.PI / 180)) {
-                this.y += Math.abs(Math.sin(tempRotation) * this.speed);
-                this.x += Math.abs(Math.cos(tempRotation) * this.speed);
-            } else if (tempRotation > (270 * Math.PI / 180) && tempRotation <= (360 * Math.PI / 180)) {
-                this.y += Math.abs(Math.sin(tempRotation) * this.speed);
-                this.x += Math.abs(Math.cos(tempRotation) * this.speed);
+            if (this.rotation > 0 && this.rotation <= (90 * Math.PI / 180)) {
+                this.y += this.speed;
+            } else if (this.rotation > (90 * Math.PI / 180) && this.rotation <= (180 * Math.PI / 180)) {
+                this.x -= this.speed;
+            } else if (this.rotation > (180 * Math.PI / 180) && this.rotation <= (270 * Math.PI / 180)) {
+                this.y -= this.speed;
+            } else if (this.rotation > (270 * Math.PI / 180) && this.rotation <= (360 * Math.PI / 180)) {
+                this.y += Math.abs(Math.sin(this.rotation) * this.speed);
+                this.x += Math.abs(Math.cos(this.rotation) * this.speed);
             }
-            //backgroundX = this.x + 2300;
-            //backgroundY = this.y + 1650;
-            this.move()
         }
-        else if (track[currentPart][1] === "pits") {
-            let result = pitting(currentPart)
+        */
+        else if (track[this.part][1] === "pits") {
+            let result = pitting(this.part)
             this.rotation = result.rotation
             this.x = result.this.x
             this.y = result.this.y
             currentPart = result.part;
-            this.move()
         }
+        return [this.x, this.y, this.rotation]
+    }
+    getImage(){
+        return this.car;
     }
 }

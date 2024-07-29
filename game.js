@@ -21,13 +21,18 @@ var charX = -2300;
 var charY = -1650;
 var howMany = 0;
 var temp = 0;
+var distance = 0;
+var steps = 0;
 var partOfPit = 0;
+var xStart = 0;
+var yStart = 0;
 var rotation2 = 0;
-var backgroundX = 0;
-var backgroundY = 0;
+var angle = 0;
+var counting = 0;
 let carSpeed = 1;
-let cars = [];
-let newCar = new autoCar('Images/car.png', 0, 40, -2350, -1650, 0, 0)
+let cars = [0, 0, 0];
+let newCar = new autoCar('Images/car.png', 0, 0.5, 0, 0, 0, 0, 0); // AI car
+let aiCar = new autoCar('Images/car.png', 0, 0.5, -2300, -1650, 0, 0, 0); // AI car
 const maxSpeed = 50;
 let track = [[1, "straight", -2040, 0, 1423, 0], [2, "corner", 1423, 0, 1660, 250, 20], [3, "straight", 1660, 250, 1660, 1015], [4, "corner", 1660, 1015, 1440, 1220, 30], [5, "straight", 1440, 1220, -2050, 1220], [6, "corner", -2050, 1220, -2250, 1000, 20], [7, "straight", -2250, 1000, -2243, 210], [8, "corner", -2243, 210, -2040, 0, 30],
 [9, "pits", -1880, 0, -1180, 440, -180, 440, 840, 440, 1026, 20]]
@@ -35,8 +40,8 @@ var pit = false;
 var overtake = false;
 var rotation = 90 * (Math.PI / 180);
 var currentPart = 0;
-var endX = track[currentPart][4]
-var endY = track[currentPart][5]
+var xEnd = track[currentPart][4]
+var yEnd = track[currentPart][5]
 var key_left = false;
 var key_right = false;
 var brake = false;
@@ -55,7 +60,8 @@ function corner() {
     }
 }
 function draw() {
-    newCar.move()
+    cars = newCar.move()
+    aiCar.move();
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
     //ctx.translate(charX,charY);
@@ -65,8 +71,14 @@ function draw() {
     corner()
     ctx.rotate(-rotation);
     //ctx.translate(-charX,-charY)
+    ctx.rotate(90+cars[2])
+    ctx.drawImage(newCar.getImage(), cars[0], cars[1], 75, 100);
+    ctx.rotate(-90-cars[2])
+    ctx.rotate(90+aiCar.rotation); // Rotate based on AI car's rotation
+    ctx.drawImage(aiCar.getImage(), aiCar.x, aiCar.y, 75, 100);
+    ctx.rotate(-90-aiCar.rotation);
     ctx.translate(-CANVAS_WIDTH / 2, -CANVAS_HEIGHT / 2)
-    i = 0
+    //i = 0
     ctx.drawImage(carImage, CANVAS_WIDTH / 2 - 25, CANVAS_HEIGHT / 2 - 50, 75, 100);
 
 }
@@ -119,7 +131,6 @@ function pitting(part) {
     }
     if (partOfPit == 6) {
         charX += carSpeed
-        console.log("Test")
         if (charX + 2300 >= xEnd && charY + 1650 >= yEnd && charX + 2300 <= xEnd + 10 && charY + 1650 <= yEnd + 10) {
             partOfPit = 8;
             xStart = track[8][partOfPit];
@@ -129,7 +140,6 @@ function pitting(part) {
         }
     }
     if (partOfPit == 8) {
-        console.log("8")
         distance = Math.sqrt((xEnd - xStart) ** 2 + (yEnd - yStart) ** 2) / 1500 * carSpeed;
         angle = Math.atan2(yEnd - yStart, xEnd - xStart);
         rotation = (90 * (Math.PI / 180)) + angle;
@@ -137,8 +147,8 @@ function pitting(part) {
         charY -= Math.abs(Math.cos(rotation) * distance);
         if (charX + 2300 >= xEnd && charY + 1650 >= yEnd && charX + 2300 <= xEnd + 10 && charY + 1650 <= yEnd + 10) {
             console.log("Moving")
-            charX = endX - 2300;
-            charY = endY - 1650;
+            charX = xEnd - 2300;
+            charY = yEnd - 1650;
             partOfPit += 2;
             part = 0;
         }
@@ -146,7 +156,6 @@ function pitting(part) {
     return { charX: charX, charY: charY, rotation: rotation, part: part }
 }
 function turning(part, temp) {
-    console.log(part)
     if (track[part][1] == "corner") {
         xStart = track[part][2];
         yStart = track[part][3];
@@ -213,6 +222,7 @@ function turning(part, temp) {
     return { rotation: rotation2 * (Math.PI / 180), charX: charX, charY: charY, temp: temp, part: part };
 }
 function running() {
+    aiCar.move();
     if (track[currentPart][1] === "corner") {
         corner();
         draw();
@@ -224,9 +234,9 @@ function running() {
         temp = result.temp;
         currentPart = result.part;
     } else if (track[currentPart][1] === "straight") {
-        endX = track[currentPart][4]
-        endY = track[currentPart][5]
-        if (endX >= charX + 2300 && endX <= charX + 2310 && endY >= charY + 1650 && endY <= charY + 1660) {
+        xEnd = track[currentPart][4]
+        yEnd = track[currentPart][5]
+        if (xEnd >= charX + 2300 && xEnd <= charX + 2310 && yEnd >= charY + 1650 && yEnd <= charY + 1660) {
             currentPart++;
             temp = 0;
         }
@@ -253,8 +263,6 @@ function running() {
             charY += Math.abs(Math.sin(tempRotation) * carSpeed);
             charX += Math.abs(Math.cos(tempRotation) * carSpeed);
         }
-        backgroundX = charX + 2300;
-        backgroundY = charY + 1650;
     }
     else if (track[currentPart][1] === "pits") {
         let result = pitting(currentPart)
@@ -289,8 +297,8 @@ function player() {
             rotation += 1 * (Math.PI / 180);
         }
     }
-    if (brake) { if (carSpeed > 0) { carSpeed -= 0.1; } else { carSpeed = 0; } console.log("Part: " + currentPart + "CharX: " + (charX + 2300) + " CharY: " + (charY + 1650)) }
-    if (accelerate) { carSpeed += 0.1; }
+    if (brake) { if (carSpeed > 0) { carSpeed -= 0.05; } else { carSpeed = 0; } console.log("Part: " + currentPart + "CharX: " + (charX + 2300) + " CharY: " + (charY + 1650)) }
+    if (accelerate) { carSpeed += 0.05; }
 }
 
 
