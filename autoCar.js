@@ -1,13 +1,21 @@
 var xEnd = 0;
 var yEnd = 0;
+var tempRotation = 0;
 var xStart = 0;
 var yStart = 0;
+var endOfStraightX = 0;
+var endOfStraightY = 0;
+var distance = 0;
+var steps = 0;
+var howMany = 0;
+var rotation;
+var rotation2;
 let track = [[1, "straight", -2040, 0, 1423, 0], [2, "corner", 1423, 0, 1660, 250, 20], [3, "straight", 1660, 250, 1660, 1015], [4, "corner", 1660, 1015, 1440, 1220, 30], [5, "straight", 1440, 1220, -2050, 1220], [6, "corner", -2050, 1220, -2250, 1000, 20], [7, "straight", -2250, 1000, -2243, 210], [8, "corner", -2243, 210, -2040, 0, 30], [9, "pits", -1880, 0, -1180, 440, -180, 440, 840, 440, 1026, 20]]
 export default class car {
     constructor(image, position, speed, x, y, rotation, part) {
         this.car = new Image();
         this.car.src = image;
-        this.rotation = rotation;
+        this.rotation = rotation*(Math.PI / 180);
         this.position = position;
         this.speed = speed;
         this.x = x;
@@ -16,18 +24,47 @@ export default class car {
     }
 
     move() {
-        if (track[this.position][1] == "straight") {
-            this.speed = 1;
-            if (this.rotation == 0) {
+        if (track[this.part][1] == "straight") {
+            this.speed = 0.5;
+            endOfStraightX = track[this.position][4];
+            endOfStraightY = track[this.position][5];
+            tempRotation = this.rotation-(270*(Math.PI / 180));
+            if(tempRotation < 0){
+                tempRotation = (360*(Math.PI /180))+tempRotation;
+            }
+            if (tempRotation == 0) {
                 this.x += this.speed;
-            } else if (this.rotation == (90*(Math.PI / 180))) {
+            } else if (tempRotation == (90*(Math.PI / 180))) {
                 this.y += this.speed;
-            } else if (this.rotation == (180*(Math.PI / 180))) {
+            } else if (tempRotation == (180*(Math.PI / 180))) {
                 this.x-= this.speed;
-            } else if (this.rotation == (270*(Math.PI / 180))) {
+            } else if (tempRotation == (270*(Math.PI / 180))) {
                 this.y -= this.speed;
             }
-        } else if (track[this.position][1] == "corner") {
+            switch(this.part){
+                case 0:
+                        if(this.x >= endOfStraightX){
+                            this.part += 1;
+                        }
+                    break;
+                case 2:
+                    if(this.y >= endOfStraightY){
+                        this.part += 1;
+                    }
+                    break;
+                case 4:
+                    if(this.x <= endOfStraightX){
+                        this.part += 1;
+                    }
+                    break;
+                case 6:
+                    if(this.y <= endOfStraightY){
+                        this.part +=1;
+                    }
+                    break;
+            }
+        } else if (track[this.part][1] == "corner") {
+            console.log("Truening")
             this.speed = 0.5;
             xStart = track[this.part][2];
             yStart = track[this.part][3];
@@ -88,33 +125,6 @@ export default class car {
                 }
             }
         }
-            /*
-        else if (track[this.part][1] === "straight") {
-            this.speed = 1;
-            xEnd = track[this.part][4]
-            yEnd = track[this.part][5]
-            if (xEnd >= this.x + 2300 && xEnd <= this.x + 2310 && yEnd >= this.y + 1650 && yEnd <= this.y + 1660) {
-                this.part++;
-            }
-            console.log(this.rotation)
-            if (this.rotation < 0) {
-                this.rotation = (360 * Math.PI / 180);
-            }
-            if (this.rotation == 0) {
-                this.y += this.speed;
-            }
-            if (this.rotation > 0 && this.rotation <= (90 * Math.PI / 180)) {
-                this.y += this.speed;
-            } else if (this.rotation > (90 * Math.PI / 180) && this.rotation <= (180 * Math.PI / 180)) {
-                this.x -= this.speed;
-            } else if (this.rotation > (180 * Math.PI / 180) && this.rotation <= (270 * Math.PI / 180)) {
-                this.y -= this.speed;
-            } else if (this.rotation > (270 * Math.PI / 180) && this.rotation <= (360 * Math.PI / 180)) {
-                this.y += Math.abs(Math.sin(this.rotation) * this.speed);
-                this.x += Math.abs(Math.cos(this.rotation) * this.speed);
-            }
-        }
-        */
         else if (track[this.part][1] === "pits") {
             let result = pitting(this.part)
             this.rotation = result.rotation
@@ -122,7 +132,7 @@ export default class car {
             this.y = result.this.y
             currentPart = result.part;
         }
-        return [this.x, this.y, this.rotation]
+        return [this.x, this.y, this.rotation * (Math.PI / 180)]
     }
     getImage(){
         return this.car;

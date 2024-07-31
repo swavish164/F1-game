@@ -27,12 +27,13 @@ var partOfPit = 0;
 var xStart = 0;
 var yStart = 0;
 var rotation2 = 0;
+var moved = [0,0]
 var angle = 0;
 var counting = 0;
 let carSpeed = 1;
 let cars = [0, 0, 0];
-let newCar = new autoCar('Images/car.png', 0, 0.5, 0, 0, 0, 0, 0); // AI car
-let aiCar = new autoCar('Images/car.png', 0, 0.5, -2300, -1650, 0, 0, 0); // AI car
+//let newCar = new autoCar('Images/car.png', 0, 0.1, -50, -20, 0, 0); // AI car
+let aiCar = new autoCar('Images/car.png', 0, 0.1, 0, 0, 270, 0); // AI car
 const maxSpeed = 50;
 let track = [[1, "straight", -2040, 0, 1423, 0], [2, "corner", 1423, 0, 1660, 250, 20], [3, "straight", 1660, 250, 1660, 1015], [4, "corner", 1660, 1015, 1440, 1220, 30], [5, "straight", 1440, 1220, -2050, 1220], [6, "corner", -2050, 1220, -2250, 1000, 20], [7, "straight", -2250, 1000, -2243, 210], [8, "corner", -2243, 210, -2040, 0, 30],
 [9, "pits", -1880, 0, -1180, 440, -180, 440, 840, 440, 1026, 20]]
@@ -60,7 +61,11 @@ function corner() {
     }
 }
 function draw() {
-    cars = newCar.move()
+    moved[0] = 0;
+    moved[1]=0;
+    moved[0] = charX +2300;
+    moved[1] = charY +1650;
+    //cars = newCar.move()
     aiCar.move();
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
@@ -71,16 +76,20 @@ function draw() {
     corner()
     ctx.rotate(-rotation);
     //ctx.translate(-charX,-charY)
-    ctx.rotate(90+cars[2])
-    ctx.drawImage(newCar.getImage(), cars[0], cars[1], 75, 100);
-    ctx.rotate(-90-cars[2])
-    ctx.rotate(90+aiCar.rotation); // Rotate based on AI car's rotation
-    ctx.drawImage(aiCar.getImage(), aiCar.x, aiCar.y, 75, 100);
-    ctx.rotate(-90-aiCar.rotation);
+    //ctx.rotate(cars[2])
+    //ctx.drawImage(newCar.getImage(), cars[0]-moved[0], cars[1]-moved[1], 75, 100);
+    //ctx.rotate(-cars[2])
+    // Rotate the AI car image around its center
+    ctx.rotate(aiCar.rotation+(360*(Math.PI / 180)-rotation));
+    ctx.translate(aiCar.x + 75/2-moved[0], aiCar.y + 100/2-moved[1]); // Move to the car's center // Rotate the image
+    ctx.rotate(-aiCar.rotation-(360*(Math.PI / 180)-rotation))
+    ctx.drawImage(aiCar.getImage(), -75/2, -100/2, 75, 100); // Draw with the origin shifted // Undo the rotation
+    ctx.rotate(aiCar.rotation+(360*(Math.PI / 180)-rotation))
+    ctx.translate(-aiCar.x - 75/2+moved[0], -aiCar.y - 100/2+moved[1]);
+    ctx.rotate(-aiCar.rotation-(360*(Math.PI / 180)-rotation));// Move back to the original position
     ctx.translate(-CANVAS_WIDTH / 2, -CANVAS_HEIGHT / 2)
     //i = 0
     ctx.drawImage(carImage, CANVAS_WIDTH / 2 - 25, CANVAS_HEIGHT / 2 - 50, 75, 100);
-
 }
 function pitting(part) {
     if (partOfPit == 0) {
@@ -315,6 +324,10 @@ function handleKeyDown(event) {
     else if (event.keyCode == 80) {
         pit = true;
         partOfPit = 0;
+    }else if(event.keyCode ==13){
+        console.log("Moved: "+moved)
+        console.log("Char X: "+charX+" CharY: "+charY)
+        console.log("X: "+aiCar.x+" Y: "+aiCar.y+" Rotation: "+aiCar.rotation / (Math.PI / 180))
     }
 }
 function handleKeyUp(event) {
